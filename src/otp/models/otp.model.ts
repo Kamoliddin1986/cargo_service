@@ -1,6 +1,7 @@
 
-import { INTEGER } from "sequelize";
-import { Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { Column, DataType, ForeignKey, HasMany, HasOne, Model, Table } from "sequelize-typescript";
+import { Order } from "../../order/models/order.Model";
+import { Driver } from "../../drivers/models/driver.model";
 interface OtpCreatorAttr {
     otp: string;
     expiretion_time: Date;
@@ -19,7 +20,7 @@ export class Otp extends Model<Otp, OtpCreatorAttr>{
     @Column({
         type: DataType.STRING,
     })
-    name: string;
+    otp: string;
 
     @Column({
         type: DataType.DATE,
@@ -30,4 +31,10 @@ export class Otp extends Model<Otp, OtpCreatorAttr>{
         type: DataType.BOOLEAN,
     })
     verified: boolean;
+
+    @HasOne(() => Order)
+    order: Order
+
+    @HasOne(() => Driver)
+    driver: Driver
 }
