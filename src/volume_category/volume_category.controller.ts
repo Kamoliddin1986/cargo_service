@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { VolumeCategoryService } from './volume_category.service';
 import { CreateVolumeCategoryDto } from './dto/create-volume_category.dto';
 import { UpdateVolumeCategoryDto } from './dto/update-volume_category.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('volume_category')
 @Controller('volume-category')
 export class VolumeCategoryController {
   constructor(private readonly volumeCategoryService: VolumeCategoryService) {}

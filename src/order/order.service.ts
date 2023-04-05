@@ -1,26 +1,214 @@
-import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { Order } from './models/order.Model';
+import { InjectModel } from '@nestjs/sequelize';
+import { log } from 'console';
+import { JwtService } from '@nestjs/jwt';
+import { Response, response } from 'express';
+import * as otpGenerator from 'otp-generator'
+
+import * as bcrypt from 'bcrypt'
+import { GetOtpOrderDto } from './dto/getOtp-order.dto';
+import { Otp } from '../otp/models/otp.model';
+import { AddMinutesToDate } from '../helpers/addMinutes';
+import {v4 as uuidv4, v4 } from 'uuid'
+import { dates, decode, encode } from '../helpers/crypto';
+import { VerifyOtpOrderDto } from './dto/verifyOtp-order.dto';
+
 
 @Injectable()
 export class OrderService {
-  create(createOrderDto: CreateOrderDto) {
-    return 'This action adds a new order';
+  constructor(
+    @InjectModel(Order) private OrderRepo: typeof Order,
+    @InjectModel(Otp) private OtpRepo: typeof Otp,
+    private readonly jwtService: JwtService
+    ) {}
+  
+
+
+  
+    async write_to_cookie(tokens: any, msg: string, update: any, res: Response ) {
+      res.cookie('refresh_token', `${tokens.refresh_token}`, {
+        maxAge: 15*24*60*60*1000,
+        httpOnly: true
+      })
+  
+    const response = {
+      message: msg,
+      user: update,
+      tokens,
+    };
+    return response
+    }
+  
+    
+  
+    async getToken(order: Order) {
+      const jwtPayload = {
+        role: 'order',
+        id: order.id,
+        is_activa: order.is_active,
+      };
+  
+      const [accessToken, refreshToken] =await Promise.all([
+        this.jwtService.signAsync(jwtPayload, {
+          secret: process.env.ACCESS_TOKEN_KEY,
+          expiresIn: process.env.ACCESS_TOKEN_TIME
+        }),
+        this.jwtService.signAsync(jwtPayload, {
+          secret: process.env.REFRESH_TOKEN_KEY,
+          expiresIn: process.env.REFRESH_TOKEN_TIME
+        })
+      ]);
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken
+      }
+    }
+  
+
+    
+  async newOtp(getOtpOrderDto: GetOtpOrderDto){
+    const phone_number = getOtpOrderDto.phone;
+
+    const otp = otpGenerator.generate(4, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false
+    });
+ 
+    const now = new Date();
+    const expiration_time = AddMinutesToDate(now,20);
+    
+    const existsOtp = await this.OtpRepo.findOne({
+      where: {check: phone_number}
+    })
+    
+    let sendOtp
+    if(existsOtp){
+      const  updateOtp = await this.OtpRepo.update({
+        otp,
+        expiration_time,
+        verified:false
+      }, {returning: true, where: {check: phone_number}})
+      sendOtp = updateOtp[1][0]
+      
+    }else{
+      
+      const newOtp = await this.OtpRepo.create({
+        otp,
+        expiration_time: expiration_time,
+        check: phone_number
+      });
+      
+      sendOtp = newOtp
+    }
+    
+    const details = {
+      timestamp: now,
+      check: phone_number,
+      success: true,
+      message: 'Otp send to user',
+      otp_id: sendOtp.id,
+    }
+    
+    console.log('ExistOtp>>>>>>>>>', sendOtp);
+    const encoded = await encode(JSON.stringify(details));
+    return { status: 'Success', Details: encoded}
+
+    
   }
 
-  findAll() {
-    return `This action returns all order`;
+  async verifyOtp(verifyOtpOrderDto: VerifyOtpOrderDto,res: Response) {
+    const { verification_key, otp, check} = verifyOtpOrderDto
+    const currentdate = new Date();
+    const decod = await decode(verification_key);
+    const obj = JSON.parse(decod);
+    const check_obj = obj.check
+
+    console.log(obj);
+    
+    if(check_obj !=check) {
+      throw new BadRequestException('OTP bu raqamga yuborilmagan')
+    }
+
+    const result = await this.OtpRepo.findOne({
+      where: { id: obj.otp_id}
+    });
+
+    if (result !=null) {
+      if(!result.verified) {
+        if(dates.compare(result.expiration_time, currentdate)) {
+          if (otp ===result.otp) {
+            const verified_otp = await this.OtpRepo.update(
+              {verified: true},
+              {where: {id: obj.otp_id}, returning: true}
+            )
+
+              const oldOrder = await this.OrderRepo.findOne({
+                where: {phone: check}
+              })
+
+
+              console.log('User>>>>>>>>>>>>>>>>>>>>>>>1>',oldOrder);
+              
+            const tokens = await this.getToken(oldOrder)
+            let order = oldOrder
+            let message: string
+            if(!oldOrder) {
+              const newOrder = await this.OrderRepo.create({
+                phone: check, otp_id: result.id})
+                message = 'new Order created',
+                order = newOrder
+            }else{
+                message ='old Order otp updating'
+            }
+
+            return await this.write_to_cookie(tokens,message,order,res)
+
+
+            
+          }else {
+            throw new BadRequestException('OTP is not match')
+          }
+        }else{
+          throw new BadRequestException('OTP expired')
+        }
+      }else{
+        throw new BadRequestException('OTP alredy Used')
+      }
+    }else{
+      throw new BadRequestException('bunday foydalanuvchi yuq')
+    }
+
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+
+  
+  async createPhone (phone: string, otp_id: number){
+    const ord = await this.OrderRepo.create({phone, otp_id})
+    return ord
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  
+    async findAll() {
+  
+      const verib = await this.OrderRepo.findAll({include:{all: true}})
+      return verib
+    }
+  
+    async findOne(id: number) {
+      const verib = await this.OrderRepo.findByPk(id,{include:{all: true}})
+      return verib
+    }
+  
+    async update(id: number, updateOrderDto: UpdateOrderDto) {
+      const verib = await this.OrderRepo.update(updateOrderDto, {where: {id}})
+      return verib
+    }
+  
+    remove(id: number) {
+      return this.OrderRepo.destroy({where: {id}})
+    }
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
-  }
-}

@@ -4,7 +4,6 @@ interface OrderCreationAttr {
     first_name: string;
     last_name: string;
     email: string;
-    hashed_password: string;
     hashed_refresh_token: string;
     is_active: boolean;
     phone: string;
@@ -37,10 +36,6 @@ export class Order extends Model<Order,OrderCreationAttr>{
     })
     email: string;
 
-    @Column({
-        type: DataType.STRING,
-    })
-    hashed_password: string;
 
     @Column({
         type: DataType.STRING,
@@ -49,6 +44,7 @@ export class Order extends Model<Order,OrderCreationAttr>{
 
     @Column({
         type: DataType.BOOLEAN,
+        defaultValue: false
     })
     is_active: boolean;
 

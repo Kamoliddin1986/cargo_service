@@ -4,8 +4,10 @@ import { Order } from "../../order/models/order.Model";
 import { Driver } from "../../drivers/models/driver.model";
 interface OtpCreatorAttr {
     otp: string;
-    expiretion_time: Date;
-    verified: boolean
+    expiration_time: Date;
+    verified: boolean;
+    check: string;
+
 }
 
 @Table({tableName: 'otp'})
@@ -25,16 +27,23 @@ export class Otp extends Model<Otp, OtpCreatorAttr>{
     @Column({
         type: DataType.DATE,
     })
-    expiretion_time: Date;
+    expiration_time: Date;
+
+    @Column({
+        type: DataType.STRING,
+
+    })
+    check: string;
 
     @Column({
         type: DataType.BOOLEAN,
+        defaultValue: false
     })
     verified: boolean;
 
-    @HasOne(() => Order)
+    @HasMany(() => Order)
     order: Order
 
-    @HasOne(() => Driver)
+    @HasMany(() => Driver)
     driver: Driver
 }

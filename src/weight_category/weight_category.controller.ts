@@ -2,7 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { WeightCategoryService } from './weight_category.service';
 import { CreateWeightCategoryDto } from './dto/create-weight_category.dto';
 import { UpdateWeightCategoryDto } from './dto/update-weight_category.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('weight_category')
 @Controller('weight-category')
 export class WeightCategoryController {
   constructor(private readonly weightCategoryService: WeightCategoryService) {}
