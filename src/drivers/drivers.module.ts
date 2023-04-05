@@ -8,9 +8,10 @@ import { WeightCategory } from '../weight_category/models/weight_category.model'
 import { VolumeCategory } from '../volume_category/models/volume_category.model';
 import { Otp } from '../otp/models/otp.model';
 import { CarType } from '../car_type/models/car_type.model';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Driver,DriverCargo,CarType,WeightCategory,VolumeCategory,Otp])],
+  imports: [SequelizeModule.forFeature([Driver,DriverCargo,CarType,WeightCategory,VolumeCategory,Otp]),JwtModule.register({})],
   controllers: [DriversController],
   providers: [DriversService]
 })

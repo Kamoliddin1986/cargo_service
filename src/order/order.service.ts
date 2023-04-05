@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import { FirstUpdateOrderDto } from './dto/firstUpdate-order.dto';
 import { Order } from './models/order.Model';
 import { InjectModel } from '@nestjs/sequelize';
 import { log } from 'console';
@@ -14,6 +14,7 @@ import { AddMinutesToDate } from '../helpers/addMinutes';
 import {v4 as uuidv4, v4 } from 'uuid'
 import { dates, decode, encode } from '../helpers/crypto';
 import { VerifyOtpOrderDto } from './dto/verifyOtp-order.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 
 @Injectable()
@@ -47,7 +48,7 @@ export class OrderService {
       const jwtPayload = {
         role: 'order',
         id: order.id,
-        is_activa: order.is_active,
+        is_active: order.is_active,
       };
   
       const [accessToken, refreshToken] =await Promise.all([
@@ -151,23 +152,30 @@ export class OrderService {
 
 
               console.log('User>>>>>>>>>>>>>>>>>>>>>>>1>',oldOrder);
-              
-            const tokens = await this.getToken(oldOrder)
+            let tokens: any;
             let order = oldOrder
             let message: string
-            if(!oldOrder) {
+            let hashed_refresh_token:string;
+            if(oldOrder) {
+              message ='old Order otp updating'
+              tokens = await this.getToken(oldOrder);
+              hashed_refresh_token = await bcrypt.hash(tokens.refresh_token,7)
+              console.log('HASH>>>>>>>>>>>>>>>>',hashed_refresh_token);
+              
+            }else{
+              
               const newOrder = await this.OrderRepo.create({
                 phone: check, otp_id: result.id})
+                tokens = await this.getToken(newOrder)
+                hashed_refresh_token = await bcrypt.hash(tokens.refresh_token,7)
                 message = 'new Order created',
                 order = newOrder
-            }else{
-                message ='old Order otp updating'
-            }
+              }
 
-            return await this.write_to_cookie(tokens,message,order,res)
+            const updateOrder = await this.OrderRepo.update({hashed_refresh_token},{returning: true, where: {id: order.id}})
 
+            return await this.write_to_cookie(tokens,message,updateOrder[1][0],res)
 
-            
           }else {
             throw new BadRequestException('OTP is not match')
           }
@@ -203,6 +211,11 @@ export class OrderService {
       return verib
     }
   
+    async firstUpdate(id: number, firstupdateOrderDto: FirstUpdateOrderDto) {
+      const verib = await this.OrderRepo.update({...firstupdateOrderDto, is_active: true}, {where: {id}})
+      return verib
+    }
+
     async update(id: number, updateOrderDto: UpdateOrderDto) {
       const verib = await this.OrderRepo.update(updateOrderDto, {where: {id}})
       return verib

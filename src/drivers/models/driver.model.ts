@@ -11,7 +11,6 @@ interface DriverCreationAttr {
     first_name: string;
     last_name: string;
     phone: string;
-    hashed_password: string;
     hashed_refresh_token: string;
     is_active: boolean;
     weight_category_id: number;
@@ -46,12 +45,7 @@ export class Driver extends Model<Driver,DriverCreationAttr> {
     })
     phone: string;
 
-    @Column({
-        type: DataType.STRING,
-    })
-    hashed_password: string;
-
-
+  
     @Column({
         type: DataType.STRING,
     })
@@ -59,6 +53,7 @@ export class Driver extends Model<Driver,DriverCreationAttr> {
 
     @Column({
         type: DataType.BOOLEAN,
+        defaultValue: false
     })
     is_active: boolean;
 
