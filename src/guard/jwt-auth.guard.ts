@@ -28,7 +28,7 @@ canActivate(context: ExecutionContext,): boolean | Promise<boolean> | Observable
     try {
         user = this.jwtService.verify(token,{secret:process.env.ACCESS_TOKEN_KEY})
         req.user = user
-        console.log(user);        
+        // console.log(user);        
     } catch (error) {
         throw new UnauthorizedException({
             message: "Token hato verify"

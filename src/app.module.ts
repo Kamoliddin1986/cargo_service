@@ -41,7 +41,7 @@ import { OrderModule } from './order/order.module';
             database: process.env.POSTGRES_DB,
             models: [Status,Otp,Admin,VolumeCategory,WeightCategory,Driver,Order,DriverCargo,CarType,Cargo],
             autoLoadModels: true,
-            logging: true
+            logging: false
         }),
         StatusModule,
         VolumeCategoryModule,
