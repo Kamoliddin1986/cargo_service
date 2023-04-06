@@ -7,9 +7,10 @@ import { Driver } from '../drivers/models/driver.model';
 import { Order } from '../order/models/order.model';
 import { Status } from '../status/models/status.model';
 import { Cargo } from '../cargo/models/cargo.model';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SequelizeModule.forFeature([DriverCargo,Cargo,Status,Driver])],
+  imports: [SequelizeModule.forFeature([DriverCargo,Cargo,Status,Driver]),JwtModule],
   controllers: [DriverCargoController],
   providers: [DriverCargoService]
 })

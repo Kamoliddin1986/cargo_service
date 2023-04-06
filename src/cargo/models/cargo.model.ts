@@ -14,7 +14,6 @@ interface CargoCreationAttr {
     unloading_date: Date;
     status_id: number;
     price: number;
-    photo: string;
 }
 
 @Table({tableName: 'cargo'})
@@ -73,6 +72,7 @@ export class Cargo extends Model<Cargo,CargoCreationAttr>{
     @ForeignKey(() => Status)
     @Column({
         type: DataType.INTEGER,
+        defaultValue: 1
     })
     status_id: number;
 
@@ -81,10 +81,7 @@ export class Cargo extends Model<Cargo,CargoCreationAttr>{
     })
     price: number;
 
-    @Column({
-        type: DataType.STRING,
-    })
-    photo: string;
+
 
     @BelongsTo(() => WeightCategory)
     weight_category: WeightCategory[]

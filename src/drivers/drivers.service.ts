@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Driver } from './models/driver.model';
@@ -12,7 +11,7 @@ import { GetOtpDriverDto } from './dto/getOtp-driver.dto';
 import { AddMinutesToDate } from '../helpers/addMinutes';
 import { dates, decode, encode } from '../helpers/crypto';
 import { VerifyOtpDriverDto } from './dto/verifyOtp-driver.dto';
-import { log } from 'console';
+import { FirstUpdateDriverDto } from './dto/firstUpdate-driver.dto';
 
 @Injectable()
 export class DriversService {
@@ -185,6 +184,32 @@ async verifyOtp(verifyOtpDriverDto: VerifyOtpDriverDto, res: Response) {
 
 
 
+async refreshToken(driver_id: number, refreshToken: string, res: Response) {
+  const decodedToken = this.jwtService.decode(refreshToken);
+
+  if(driver_id != decodedToken['id']) {
+    throw new BadRequestException('driver not founded');
+  }
+
+  const driver = await this.DriverRepo.findOne({ where: { id: driver_id}})
+  if(!driver || !driver.hashed_refresh_token){
+    throw new BadRequestException('driver not founded')
+  }
+
+  const tokenMatch = await bcrypt.compare(
+    refreshToken,
+    driver.hashed_refresh_token
+  )
+
+  if (!tokenMatch) {
+    throw new BadRequestException("Taqaialngan")
+  }
+
+  const tokens = await this.getToken(driver);
+
+}
+
+
 async createPhone (phone: string, otp_id: number){
   const ord = await this.DriverRepo.create({phone, otp_id})
   return ord
@@ -202,9 +227,11 @@ async findOne(id: number) {
 }
 
 async update(id: number, updateDriverDto: UpdateDriverDto) {
-
-
   const verib = await this.DriverRepo.update(updateDriverDto, {where: {id}})
+  return verib
+}
+async firstUpdate(id: number, firstUpdateDriverDto: FirstUpdateDriverDto) {
+  const verib = await this.DriverRepo.update({...firstUpdateDriverDto, is_active:true}, {where: {id}})
   return verib
 }
 

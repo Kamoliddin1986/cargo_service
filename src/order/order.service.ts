@@ -36,7 +36,7 @@ export class OrderService {
   
     const response = {
       message: msg,
-      user: update,
+      order: update,
       tokens,
     };
     return response
@@ -109,7 +109,7 @@ export class OrderService {
       timestamp: now,
       check: phone_number,
       success: true,
-      message: 'Otp send to user',
+      message: 'Otp send to order',
       otp_id: sendOtp.id,
     }
     
@@ -199,6 +199,31 @@ export class OrderService {
     return ord
   }
 
+
+  async refreshToken(order_id: number, refreshToken: string, res: Response) {
+    const decodedToken = this.jwtService.decode(refreshToken);
+
+    if(order_id != decodedToken['id']) {
+      throw new BadRequestException('order not founded');
+    }
+
+    const order = await this.OrderRepo.findOne({ where: { id: order_id}})
+    if(!order || !order.hashed_refresh_token){
+      throw new BadRequestException('User not founded')
+    }
+
+    const tokenMatch = await bcrypt.compare(
+      refreshToken,
+      order.hashed_refresh_token
+    )
+
+    if (!tokenMatch) {
+      throw new BadRequestException("Taqaialngan")
+    }
+
+    const tokens = await this.getToken(order);
+
+  }
   
     async findAll() {
   

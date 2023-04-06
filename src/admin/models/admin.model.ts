@@ -5,8 +5,8 @@ interface AdminCreationAttr{
     login: string;
     hashed_password: string;
     hashed_refresh_token: string;
-    is_creator: string;
-    is_active: string;
+    is_creator: boolean;
+    is_active: boolean;
 
 }
 
@@ -47,12 +47,12 @@ export class Admin extends Model<Admin,AdminCreationAttr>{
         type: DataType.BOOLEAN,
         defaultValue: false
     })
-    is_creator: string;
+    is_creator: boolean;
 
 
     @Column({
         type: DataType.BOOLEAN,
-        defaultValue: true
+        defaultValue: false
     })
-    is_active: string;
+    is_active: boolean;
 }

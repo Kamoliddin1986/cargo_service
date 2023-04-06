@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { FirstUpdateOrderDto } from './dto/firstUpdate-order.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -6,6 +6,9 @@ import { GetOtpOrderDto } from './dto/getOtp-order.dto';
 import { VerifyOtpOrderDto } from './dto/verifyOtp-order.dto';
 import { Response } from 'express';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { CookieGetter } from '../decorators/cookieGetter.decorator';
+import { isOrderGuard } from '../guard/isOrder.guard';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 
 
 @ApiTags('order')
@@ -24,27 +27,51 @@ export class OrderController {
     return this.orderService.verifyOtp(verifyOtpOrderDto,res);
   }
 
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/refresh')
+  refresh(
+    @Param('id') id: string,
+    @CookieGetter('refresh_token') refreshToken: string,
+    @Res({passthrough: true}) res: Response
+  ){
+    return this.orderService.refreshToken(+id,refreshToken,res)
+  }
+
+
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.orderService.findAll();
   }
 
+
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.orderService.findOne(+id);
   }
 
+
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
   }
 
-
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('/firstupdate/:id')
   firstUpdate(@Param('id') id: string, @Body() firstupdateOrderDto: FirstUpdateOrderDto) {
     return this.orderService.firstUpdate(+id, firstupdateOrderDto);
   }
 
+
+  @UseGuards(isOrderGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.orderService.remove(+id);

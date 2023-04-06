@@ -3,6 +3,7 @@ import { OtpService } from './otp.service';
 import { CreateOtpDto } from './dto/create-otp.dto';
 import { UpdateOtpDto } from './dto/update-otp.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
 
 
 @ApiTags('otp')
@@ -10,6 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class OtpController {
   constructor(private readonly otpService: OtpService) {}
 
+  
   @Post()
   create(@Body() createOtpDto: CreateOtpDto) {
     return this.otpService.create(createOtpDto);

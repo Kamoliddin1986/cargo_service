@@ -5,9 +5,11 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { VolumeCategory } from './models/volume_category.model';
 import { Cargo } from '../cargo/models/cargo.model';
 import { Driver } from '../drivers/models/driver.model';
+import { JwtAuthGuard } from '../guard/jwt-auth.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SequelizeModule.forFeature([VolumeCategory,Cargo,Driver])],
+  imports: [SequelizeModule.forFeature([VolumeCategory,Cargo,Driver]),JwtModule],
   controllers: [VolumeCategoryController],
   providers: [VolumeCategoryService]
 })

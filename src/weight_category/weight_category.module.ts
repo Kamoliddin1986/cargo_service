@@ -5,9 +5,10 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { WeightCategory } from './models/weight_category.model';
 import { Cargo } from '../cargo/models/cargo.model';
 import { Driver } from '../drivers/models/driver.model';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [SequelizeModule.forFeature([WeightCategory,Cargo,Driver])],
+  imports: [SequelizeModule.forFeature([WeightCategory,Cargo,Driver]),JwtModule],
   controllers: [WeightCategoryController],
   providers: [WeightCategoryService]
 })
