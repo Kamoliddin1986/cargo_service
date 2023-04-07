@@ -9,6 +9,7 @@ import { CookieGetter } from '../decorators/cookieGetter.decorator';
 import { FirstUpdateDriverDto } from './dto/firstUpdate-driver.dto';
 import { isDriverGuard } from '../guard/isDriver.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
+import { isDriverSelfGuard } from '../guard/isDriverSelf.guard';
 
 
 @ApiTags('drivers')
@@ -47,7 +48,7 @@ export class DriversController {
     return this.driversService.findAll();
   }
 
-
+  @UseGuards(isDriverSelfGuard)
   @UseGuards(isDriverGuard)
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -55,22 +56,25 @@ export class DriversController {
     return this.driversService.findOne(+id);
   }
 
-
+  @UseGuards(isDriverSelfGuard)
   @UseGuards(isDriverGuard)
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDriverDto: UpdateDriverDto) {
-    return this.driversService.update(+id, updateDriverDto);
+  update(@Param('id') id: string, @Body() updateDriverDto: UpdateDriverDto,
+  @Res({passthrough: true}) res: Response) {
+    return this.driversService.update(+id, updateDriverDto,res);
   }
   
 
-  @UseGuards(isDriverGuard)
+  @UseGuards(isDriverSelfGuard)
   @UseGuards(JwtAuthGuard)
   @Patch('/firstupdate/:id')
-  firstupdate(@Param('id') id: string, @Body() firstUpdateDriverDto: FirstUpdateDriverDto) {
-    return this.driversService.firstUpdate(+id, firstUpdateDriverDto);
+  firstupdate(@Param('id') id: string, @Body() firstUpdateDriverDto: FirstUpdateDriverDto,
+  @Res({passthrough: true}) res: Response) {
+    return this.driversService.firstUpdate(+id, firstUpdateDriverDto, res);
   }
 
+  @UseGuards(isDriverSelfGuard)
   @UseGuards(isDriverGuard)
   @UseGuards(JwtAuthGuard)
   @Delete(':id')

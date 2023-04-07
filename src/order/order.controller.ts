@@ -9,6 +9,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CookieGetter } from '../decorators/cookieGetter.decorator';
 import { isOrderGuard } from '../guard/isOrder.guard';
 import { JwtAuthGuard } from '../guard/jwt-auth.guard';
+import { isOrderSelfGuard } from '../guard/isOrderSelf.guard';
 
 
 @ApiTags('order')
@@ -46,7 +47,7 @@ export class OrderController {
     return this.orderService.findAll();
   }
 
-
+  @UseGuards(isOrderSelfGuard)
   @UseGuards(isOrderGuard)
   @UseGuards(JwtAuthGuard)
   @Get(':id')
@@ -54,23 +55,25 @@ export class OrderController {
     return this.orderService.findOne(+id);
   }
 
-
+  @UseGuards(isOrderSelfGuard)
   @UseGuards(isOrderGuard)
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
+  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto,
+  @Res({passthrough: true}) res: Response) {
+    return this.orderService.update(+id, updateOrderDto, res);
   }
 
-  @UseGuards(isOrderGuard)
+  @UseGuards(isOrderSelfGuard)
   @UseGuards(JwtAuthGuard)
   @Patch('/firstupdate/:id')
-  firstUpdate(@Param('id') id: string, @Body() firstupdateOrderDto: FirstUpdateOrderDto) {
-    return this.orderService.firstUpdate(+id, firstupdateOrderDto);
+  firstUpdate(@Param('id') id: string, @Body() firstupdateOrderDto: FirstUpdateOrderDto,
+  @Res({passthrough: true}) res: Response) {
+    return this.orderService.firstUpdate(+id, firstupdateOrderDto, res);
   }
 
-
-  @UseGuards(isOrderGuard)
+  @UseGuards(isOrderSelfGuard)
+  @UseGuards(isOrderSelfGuard)
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {

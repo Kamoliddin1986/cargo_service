@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FirstUpdateOrderDto } from './dto/firstUpdate-order.dto';
-import { Order } from './models/order.Model';
+import { Order } from './models/order.model';
 import { InjectModel } from '@nestjs/sequelize';
 import { log } from 'console';
 import { JwtService } from '@nestjs/jwt';
 import { Response, response } from 'express';
 import * as otpGenerator from 'otp-generator'
 
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { GetOtpOrderDto } from './dto/getOtp-order.dto';
 import { Otp } from '../otp/models/otp.model';
 import { AddMinutesToDate } from '../helpers/addMinutes';
@@ -113,7 +113,7 @@ export class OrderService {
       otp_id: sendOtp.id,
     }
     
-    console.log('ExistOtp>>>>>>>>>', sendOtp);
+    // console.log('ExistOtp>>>>>>>>>', sendOtp);
     const encoded = await encode(JSON.stringify(details));
     return { status: 'Success', Details: encoded}
 
@@ -236,14 +236,17 @@ export class OrderService {
       return verib
     }
   
-    async firstUpdate(id: number, firstupdateOrderDto: FirstUpdateOrderDto) {
-      const verib = await this.OrderRepo.update({...firstupdateOrderDto, is_active: true}, {where: {id}})
-      return verib
+    async firstUpdate(id: number, firstupdateOrderDto: FirstUpdateOrderDto, res: Response) {
+      const verib = await this.OrderRepo.update({...firstupdateOrderDto, is_active: true}, {returning: true, where: {id}})
+      
+      const tokens = await this.getToken(verib[1][0])
+      return await this.write_to_cookie(tokens,'order updated',verib[1][0], res)
     }
 
-    async update(id: number, updateOrderDto: UpdateOrderDto) {
-      const verib = await this.OrderRepo.update(updateOrderDto, {where: {id}})
-      return verib
+    async update(id: number, updateOrderDto: UpdateOrderDto, res: Response) {
+      const verib = await this.OrderRepo.update(updateOrderDto, {returning: true, where: {id}})
+      const tokens = await this.getToken(verib[1][0])
+      return await this.write_to_cookie(tokens,'order updated',verib[1][0], res)
     }
   
     remove(id: number) {

@@ -1,6 +1,6 @@
 
 import { Column, DataType, ForeignKey, HasMany, HasOne, Model, Table } from "sequelize-typescript";
-import { Order } from "../../order/models/order.Model";
+import { Order } from "../../order/models/order.model";
 import { Driver } from "../../drivers/models/driver.model";
 interface OtpCreatorAttr {
     otp: string;

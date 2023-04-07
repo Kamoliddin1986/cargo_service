@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards} from '@nestjs/common';
 import { WeightCategoryService } from './weight_category.service';
 import { CreateWeightCategoryDto } from './dto/create-weight_category.dto';
 import { UpdateWeightCategoryDto } from './dto/update-weight_category.dto';

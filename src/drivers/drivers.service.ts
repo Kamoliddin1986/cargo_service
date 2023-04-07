@@ -5,7 +5,7 @@ import { Driver } from './models/driver.model';
 import { Otp } from '../otp/models/otp.model';
 import { JwtService } from '@nestjs/jwt';
 import * as otpGenerator from 'otp-generator'
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { Response, response } from 'express';
 import { GetOtpDriverDto } from './dto/getOtp-driver.dto';
 import { AddMinutesToDate } from '../helpers/addMinutes';
@@ -226,13 +226,17 @@ async findOne(id: number) {
   return verib
 }
 
-async update(id: number, updateDriverDto: UpdateDriverDto) {
-  const verib = await this.DriverRepo.update(updateDriverDto, {where: {id}})
-  return verib
+async update(id: number, updateDriverDto: UpdateDriverDto,res) {
+  const verib = await this.DriverRepo.update(updateDriverDto, {returning: true, where: {id}})
+  const tokens = await this.getToken(verib[1][0])
+  return await this.write_to_cookie(tokens,'order updated',verib[1][0], res)
 }
-async firstUpdate(id: number, firstUpdateDriverDto: FirstUpdateDriverDto) {
-  const verib = await this.DriverRepo.update({...firstUpdateDriverDto, is_active:true}, {where: {id}})
-  return verib
+
+
+async firstUpdate(id: number, firstUpdateDriverDto: FirstUpdateDriverDto,res) {
+  const verib = await this.DriverRepo.update({...firstUpdateDriverDto, is_active:true}, {returning: true, where: {id}})
+  const tokens = await this.getToken(verib[1][0])
+  return await this.write_to_cookie(tokens,'order updated',verib[1][0], res)
 }
 
 remove(id: number) {

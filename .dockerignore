@@ -1,0 +1,5 @@
+dist
+
+pgdata
+.env
+.env copy

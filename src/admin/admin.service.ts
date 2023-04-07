@@ -4,7 +4,7 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Admin } from './models/admin.model';
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { Response, response } from 'express';
 import { LoginAdminDto } from './dto/login-admin.dto';
 
