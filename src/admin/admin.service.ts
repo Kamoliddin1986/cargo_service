@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Admin } from './models/admin.model';
 import * as bcrypt from 'bcryptjs'
-import { Response, response } from 'express';
+import { Response} from 'express';
 import { LoginAdminDto } from './dto/login-admin.dto';
 
 @Injectable()
@@ -150,8 +150,9 @@ export class AdminService {
   }
 
   async update(id: number, updateCarTypeDto: UpdateAdminDto) {
-    const verib = await this.AdminRepo.update(updateCarTypeDto, {where: {id}})
-    return verib
+    const verib = await this.AdminRepo.update(updateCarTypeDto, {returning: true, where: {id}})
+    // const tokens = await this.getToken(verib[1][0])
+    // return await this.write_to_cookie(tokens,'order updated',verib[1][0], res)
   }
 
   remove(id: number) {
